@@ -1,0 +1,36 @@
+# prevent directory listings
+#Options -Indexes
+#IndexIgnore /
+#
+#Options FollowSymlinks
+#RewriteEngine on
+#RewriteRule ^webpanel(/.+)?$ backend/web/$1 [L,PT]
+#RewriteRule ^(.+)?$ frontend/web/$1
+
+Options -Indexes
+IndexIgnore /
+
+<IfModule mod_rewrite.c>
+  RewriteEngine on
+
+  # SSL redirect
+  #RewriteCond %{HTTPS} off
+  #RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # WWW redirect
+  #RewriteCond %{HTTP_HOST} !^www\.
+  #RewriteRule .* https://www.%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  RewriteCond %{REQUEST_URI} !^public
+  RewriteRule ^webpanel(/.+)?$ backend/web/$1 [L,PT]
+  RewriteRule ^(.*)$ frontend/web/$1 [L]
+</IfModule>
+
+# Deny accessing below extensions
+<Files ~ "(.json|.lock|.git)">
+Order allow,deny
+Deny from all
+</Files>
+
+# Deny accessing dot files
+RewriteRule (^\.|/\.) - [F]

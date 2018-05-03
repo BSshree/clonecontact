@@ -1,8 +1,7 @@
 <?php
 
 namespace app\modules\api\modules\v1\controllers;
-use common\models\LoginForm;
-use common\models\Logins;
+use common\models\User;
 use yii\web\Controller;
 use Yii;
 use yii\filters\auth\HttpBearerAuth;
@@ -26,7 +25,7 @@ class DefaultController extends ActiveController
         $behaviors = parent::behaviors();
         $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
-            'only' => ['index', 'test'],
+            'only' => ['test'],
         ];
         $behaviors['contentNegotiator'] = [
             'class' => ContentNegotiator::className(),
@@ -38,17 +37,52 @@ class DefaultController extends ActiveController
         return $behaviors;
     }
     
-    public function actionRegister()
-    {
-        echo 'hireg'; exit;
-        
-        
-        
-        return $this->render('index');
+    public function actionRegister() {
+        $user = new User();
+        $post = Yii::$app->request->getBodyParams();
+        $password = $post['password'];
+        if (!empty($post)) {
+            $user->load(Yii::$app->request->getBodyParams(), '');
+             $user->auth_key = User::generateAuthKey();
+             $user->password = User::setPassword($password);
+            
+             
+                 if( $user->save()){
+                     
+                       $values[] =  [
+                            'id' => $user->id,
+                            'auth_key' =>$user->auth_key, 
+                            'username' => $user->username,
+                            'email' => $user->email,
+                          
+                ];
+                       return [
+                            'success' => true,
+                            'message' => 'Success',
+                           'data' => $values
+                            
+                        ];
+
+                   }else{
+                        return [
+                            'success' => false,
+                            'message' => 'Email Already Exists'
+                        ];
+                       
+//                    print_r($user->getErrors()); exit;
+                   }
+        } else {
+            return [
+                'success' => false,
+                'message' => 'Invalid request'
+            ];
+        }
     }
+
+    
     public function actionLogin()
     {
-        echo 'hiv1'; exit;
+        echo 'hiv1new1234'; exit;
         $model = new LoginForm();
         $user = new User();
         $admin_typeid = UserTypes::AD_USER_TYPE;
