@@ -103,7 +103,7 @@ class Logins extends RActiveRecord implements IdentityInterface {
     }
 
     public function authenticate() {
-        $userinfo = Logins::findEmail($this->email);
+        $userinfo = Users::findEmail($this->email);
         if ($userinfo === null):
             $this->addError('email', "email address not exist");  // Error Code : 1         
         else:

@@ -4,11 +4,13 @@ namespace app\modules\api\modules\v1\controllers;
 
 use common\models\Users;
 use common\models\Logins;
+use common\models\LoginForm;
 use Yii;
 use yii\filters\auth\HttpBearerAuth;
 use yii\filters\ContentNegotiator;
 use yii\rest\ActiveController;
 use yii\web\Response;
+use yii\web\UploadedFile;
 
 /**
  * Default controller for the `v1` module
@@ -44,12 +46,24 @@ class UsersController extends ActiveController {
             $user->load(Yii::$app->request->getBodyParams(), '');
             $user->auth_key = $user->generateAuthKey();
             $user->password = $user->setPassword($password);
+            if ($profile_img = UploadedFile::getInstancesByName("profile_image")) {
+                foreach ($profile_img as $file) {
+                    $file_name = str_replace(' ', '-', $file->name);
+                    $randno = rand(11111, 99999);
+                    $path = Yii::$app->basePath . '/web/uploads/' . $randno . $file_name;
+                    $file->saveAs($path);
+                    $user->profile_image = $randno . $file_name;
+                }
+            } else {
+                $user->profile_image = 'default.png';
+            }
             if ($user->save()) {
                 $values[] = [
                     'id' => $user->id,
                     'auth_key' => $user->auth_key,
                     'username' => $user->username,
                     'email' => $user->email,
+                    'profile_image' => $user->profile_image,
                 ];
                 return [
                     'success' => true,
@@ -85,6 +99,7 @@ class UsersController extends ActiveController {
                         'auth_key' => $user->auth_key,
                         'username' => $user->username,
                         'email' => $user->email,
+                        'profile_image' => $user->profile_image,
                     ];
                     return [
                         'success' => true,
@@ -107,25 +122,35 @@ class UsersController extends ActiveController {
     }
 
     public function actionEditprofile() {
+        $user = new Users();
         $post = Yii::$app->request->getBodyParams();
-        $user = Users::findOne($post['id']);
-        $password = $post['password'];
+        $userinfo = Users::findOne($post['id']);
+        $oldimage = $userinfo['profile_image'];
         if (!empty($post)) {
             $user->load(Yii::$app->request->getBodyParams(), '');
-            $password = $user->password;
-            $user->password = $user->setPassword($password);
-            $user->save();
+            $userinfo->username = $post['username'];
+            if ($profile_img = UploadedFile::getInstancesByName("profile_image")) {
+                foreach ($profile_img as $file) {
+                    $file_name = str_replace(' ', '-', $file->name);
+                    $randno = rand(11111, 99999);
+                    $path = Yii::$app->basePath . '/web/uploads/' . $randno . $file_name;
+                    $file->saveAs($path);
+                    $userinfo->profile_image = $randno . $file_name;
+                }
+                if ($oldimage != 'default.png') {
+                    unlink(Yii::$app->basePath . '/web/uploads/' . $oldimage);
+                }
+            }
+            $userinfo->save();
 
-            $profile = Users::findOne($post['id']);
-
+            $profiles = Users::findOne($post['id']);
             $values[] = [
-                'id' => $user->id,
-                'auth_key' => $user->auth_key,
-                'username' => $user->username,
-                'email' => $user->email,
-                'password' => $user->password,
+                'id' => $userinfo->id,
+                'username' => $userinfo->username,
+                'email' => $userinfo->email,
+                'profile_image' => $userinfo->profile_image
             ];
-            if (!empty($profile)) {
+            if (!empty($profiles)) {
                 return [
                     'success' => true,
                     'message' => 'Success',
@@ -152,6 +177,7 @@ class UsersController extends ActiveController {
             $values[] = [
                 'username' => $user->username,
                 'email' => $user->email,
+                'profile_image' => $user->profile_image,
             ];
             return [
                 'success' => true,
@@ -165,54 +191,88 @@ class UsersController extends ActiveController {
             ];
         }
     }
-    
-     public function actionChangepassword() {
+
+    public function actionChangepassword() {
         $post = Yii::$app->request->getBodyParams();
         if (!empty($post)) {
-            $model = Users::findOne(Yii::$app->user->getId());
+            $model = Users::findOne($post['id']);
             $model->scenario = 'changepassword';
             if ($model->load(Yii::$app->request->getBodyParams(), '') && $model->validate()) {
-                $model->password_hash = Yii::$app->getSecurity()->generatePasswordHash($model->new_pass);
+                $model->password = Yii::$app->getSecurity()->generatePasswordHash($model->new_pass);
                 $model->save();
                 return [
-                    'success' => 'true',
-                    'message' => 'Password change successfully',
+                    'success' => true,
+                    'message' => 'Password changed successfully',
                 ];
             } else {
                 return [
-                    'success' => true,
-                    'message' => 'Incorrect password',
+                    'success' => false,
+                    'message' => 'Password Mismatch',
                 ];
             }
         } else {
             return [
-                'success' => true,
+                'success' => false,
                 'message' => 'Invalid request'
             ];
         }
     }
-     public function actionForgotpassword() {
-          $model = new Logins();
+
+    public function actionForgotpassword() {
+        $model = new Users();
         $post = Yii::$app->request->getBodyParams();
         if (!empty($post)) {
             if ($model->load(Yii::$app->request->getBodyParams(), '') && $model->authenticate()) {
-                
+
                 return [
                     'success' => 'true',
-                    'message' => 'Please verify your gmail account',
+                    'message' => 'Please check your email to reset password',
                 ];
             } else {
                 return [
-                    'success' =>'false',
+                    'success' => 'false',
                     'message' => 'Incorrect email address',
                 ];
             }
         } else {
             return [
-                'success' =>'false',
+                'success' => 'false',
                 'message' => 'Invalid request'
             ];
         }
+    }
+
+    public function actionAboutus() {
+        return [
+            'success' => true,
+            'message' => 'About us',
+            'data' => "<p align='justify'>Cloud contact sounds people's kind of dairy marking their necessary contacts to get in touch with. "
+            . "Most people find it easier since its user-friendly app.</p> "
+            . "<p align='justify'>This has become one of the most handy APP's in android world. Majority usage of this APP has reached its safest heights as well. It keeps you far away from hacking and hanging."
+            . " </p>"
+            . "<p align='justify'>Its been trusted because of its security where third parties cannot easily been taken off ones information."
+            . " If you think it makes you sound super smart then go for it.</p>",
+        ];
+    }
+
+    public function actionContactus() {
+
+        $values[] = [
+            'address_line_1' => 'No-01, Gandhiji St',
+            'address_line_2' => 'Rasi Towers',
+            'landmark' => 'Near Aparna Enclave',
+            'city' => 'Madurai',
+            'pincode' => '625010',
+            'contact' => '9966552200',
+            'email' => 'info@clonecontact.com ',
+        ];
+
+
+        return [
+            'success' => true,
+            'message' => 'Contact us',
+            'data' => $values
+        ];
     }
 
 }

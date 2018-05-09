@@ -19,6 +19,8 @@ class Contacts extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
+    public $search_by;
+    
     public static function tableName()
     {
         return 'contacts';

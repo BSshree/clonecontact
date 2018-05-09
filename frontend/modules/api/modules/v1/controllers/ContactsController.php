@@ -105,13 +105,15 @@ class ContactsController extends ActiveController {
                     foreach ($contact_arrayList as $key1 => $getValue) {
                         if (in_array($key1, $arr_name)) {
                             $values[] = [
-                                $key1 => $getValue
+                                'name' => $key1,
+                                'mobile_no' => $getValue,
                             ];
                             break;
                         } else {
                             if (in_array($getValue, $arr_number)) {
                                 $values[] = [
-                                    $key1 => $getValue
+                                    'name' => $key1,
+                                    ' mobile_no' => $getValue,
                                 ];
                                 break;
                             } else {
@@ -231,8 +233,6 @@ class ContactsController extends ActiveController {
         }
     }
 
-  
-
     public function actionDeletecontact() {
         $post = Yii::$app->request->getBodyParams();
         $contacts = Contacts::find()->where(['contact_id' => $post['contact_id']])->one();
@@ -249,25 +249,34 @@ class ContactsController extends ActiveController {
             ];
         }
     }
-    
-    
-     public function actionMultideletecontact() {
+
+    public function actionDeletemulticontact() {
         $post = Yii::$app->request->getBodyParams();
+        $arr = $post['del_contact'];
         $contacts = Contacts::find()->where(['user_id' => $post['user_id']])->one();
         if ($post['user_id'] == $contacts['user_id']) {
-            $check=false;
-            foreach($contacts as $del){
-                $check=true;
-                 $contacts->delete();
-                
-                
+            $check = false;
+            foreach ($arr as $key => $contact_array) {
+
+                foreach ($contact_array as $key1 => $getValue) {
+                    $contacts_all = Contacts::find()->where(['contact_id' => $getValue])->all();
+
+                    foreach ($contacts_all as $del) {
+                        $check = true;
+                        $del->delete();
+                    }
+                }
             }
-            
-            if($check){
-            return [
-                'success' => true,
-                'message' => 'Success',
-            ];
+            if ($check) {
+                return [
+                    'success' => true,
+                    'message' => 'Success',
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'No Contact Exists',
+                ];
             }
         } else {
             return [
@@ -277,5 +286,34 @@ class ContactsController extends ActiveController {
         }
     }
 
+    public function actionSearchby() {
+        $post = Yii::$app->request->getBodyParams();
+        $contacts = Contacts::find()->where(['user_id' => $post['user_id']])->all();
+        $na = $post['search_by'];
+        $id = $post['user_id'];
+        $check = false;
+        $query = "SELECT * FROM contacts WHERE user_id = $id AND (mobile_no LIKE '%$na%' OR name LIKE '%$na%' )";
+        $result = Contacts::findBySql($query)->all();
+        foreach ($result as $cont) {
+            $check = true;
+            $values[] = [
+                'name' => $cont['name'],
+                'mobile_no' => $cont['mobile_no'],
+                'contact_id' => $cont['contact_id'],
+            ];
+        }
+        if ($check) {
+            return [
+                'success' => true,
+                'message' => 'Success',
+                'data' => $values
+            ];
+        }else{
+            return [
+                'success' => false,
+                'message' => 'No contact exists',
+            ];
+        }
+    }
 
 }
