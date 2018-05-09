@@ -3,6 +3,7 @@
 namespace app\modules\api\modules\v1\controllers;
 
 use common\models\Contacts;
+use common\models\ContactsBackup;
 use common\models\Users;
 use common\models\Logins;
 use yii\web\Controller;
@@ -12,6 +13,7 @@ use yii\filters\auth\HttpBearerAuth;
 use yii\filters\ContentNegotiator;
 use yii\rest\ActiveController;
 use yii\web\Response;
+use yii\web\UploadedFile;
 
 class ContactsController extends ActiveController {
 
@@ -308,12 +310,67 @@ class ContactsController extends ActiveController {
                 'message' => 'Success',
                 'data' => $values
             ];
-        }else{
+        } else {
             return [
                 'success' => false,
                 'message' => 'No contact exists',
             ];
         }
+    }
+
+    public function actionContactsBackup() {
+        $cont_backup = new ContactsBackup();
+        $post = Yii::$app->request->getBodyParams();
+        $user = Users::find()->where(['id' => $post['user_id']])->one();
+        if (!empty($user['auth_key'])) {
+
+            if ($backup_file = UploadedFile::getInstancesByName("file_name")) {
+
+                foreach ($backup_file as $file) {
+                    $file_name = str_replace(' ', '-', $file->name);
+                    $randno = rand(11111, 99999);
+                    $path = Yii::$app->basePath . '/web/uploads/' . $randno . $file_name;
+                    $file->saveAs($path);
+                }
+                if ($file->extension == 'vcf' || $file->extension == 'csv' || $file->extension == 'xls' || $file->extension == 'xlsv') {
+                    $cont_backup = new ContactsBackup();
+                    $cont_backup->user_id = $post['user_id'];
+                    $cont_backup->file_name = $randno . $file_name;
+                    $cont_backup->save();
+                    $values[] = [
+                        'user_id' => $post['user_id'],
+                        'file_name' => $cont_backup->file_name,
+                    ];
+                    return [
+                        'success' => true,
+                        'message' => 'Success',
+                        'data' => $values
+                    ];
+                } else {
+                    return [
+                        'success' => false,
+                        'message' => 'Invalid file format '
+                    ];
+                }
+            }
+        }
+    }
+
+    public function actionFilelist() {
+        $cont_backup = new ContactsBackup();
+        $post = Yii::$app->request->getBodyParams();
+        $back_up = ContactsBackup::find()->where(['user_id' => $post['user_id']])->all();
+         foreach ($back_up as $cont):
+            $values[] = [
+                'file_name' => $cont->file_name,
+            ];
+
+        endforeach;
+        return [
+            'success' => true,
+            'message' => 'Success',
+            'data' => $values
+        ];
     }
 
 }

@@ -20,7 +20,7 @@ use Yii;
  * @property Contacts $contact
  * @property Users $user
  */
-class CallLogs extends \yii\db\ActiveRecord
+class  CallLogs extends \yii\db\ActiveRecord
 {
     /**
      * @inheritdoc
