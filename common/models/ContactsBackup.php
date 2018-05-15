@@ -33,6 +33,7 @@ class ContactsBackup extends \yii\db\ActiveRecord
             //[['user_id'], 'required'],
             [['user_id', 'status'], 'integer'],
             [['file_name'], 'string', 'max' => 255],
+            [['created_at'], 'string', 'max' => 255],
              //[['file_name'], 'file', 'skipOnEmpty' => false, 'extensions' => 'csv, xls, xlsv, vcf, txt'],
             //[['file_name'], 'file', 'extensions'=>'csv, xls, xlsv, vcf, txt'],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => Users::className(), 'targetAttribute' => ['user_id' => 'id']],

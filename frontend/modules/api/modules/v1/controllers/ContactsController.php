@@ -156,14 +156,30 @@ class ContactsController extends ActiveController {
 
     public function actionListcontact() {
         $post = Yii::$app->request->getBodyParams();
-        $contacts = Contacts::find()->where(['user_id' => $post['user_id']])->all();
+        $contacts = Contacts::find()->orderBy(['contact_id' => SORT_DESC])->where(['user_id' => $post['user_id']])->all();
         foreach ($contacts as $cont):
             $values[] = [
                 'contact_id' => $cont->contact_id,
                 'name' => $cont->name,
                 'mobile_no' => $cont->mobile_no,
             ];
+        endforeach;
+        return [
+            'success' => true,
+            'message' => 'Success',
+            'data' => $values
+        ];
+    }
 
+    public function actionSortbyname() {
+        $post = Yii::$app->request->getBodyParams();
+        $contacts = Contacts::find()->orderBy(['name' => SORT_ASC])->where(['user_id' => $post['user_id']])->all();
+        foreach ($contacts as $cont):
+            $values[] = [
+                'contact_id' => $cont->contact_id,
+                'name' => $cont->name,
+                'mobile_no' => $cont->mobile_no,
+            ];
         endforeach;
         return [
             'success' => true,
@@ -318,28 +334,31 @@ class ContactsController extends ActiveController {
         }
     }
 
-    public function actionContactsBackup() {
+    public function actionContactsbackup() {
         $cont_backup = new ContactsBackup();
         $post = Yii::$app->request->getBodyParams();
         $user = Users::find()->where(['id' => $post['user_id']])->one();
         if (!empty($user['auth_key'])) {
-
+            date_default_timezone_set('Asia/Kolkata');
             if ($backup_file = UploadedFile::getInstancesByName("file_name")) {
 
                 foreach ($backup_file as $file) {
                     $file_name = str_replace(' ', '-', $file->name);
                     $randno = rand(11111, 99999);
-                    $path = Yii::$app->basePath . '/web/uploads/' . $randno . $file_name;
+                    $path = Yii::$app->basePath . '/web/uploads/files/' . $randno . $file_name;
                     $file->saveAs($path);
                 }
                 if ($file->extension == 'vcf' || $file->extension == 'csv' || $file->extension == 'xls' || $file->extension == 'xlsv') {
                     $cont_backup = new ContactsBackup();
                     $cont_backup->user_id = $post['user_id'];
                     $cont_backup->file_name = $randno . $file_name;
+                    $cont_backup->created_at = date('Y-m-d H:i:s A');
                     $cont_backup->save();
+
                     $values[] = [
                         'user_id' => $post['user_id'],
                         'file_name' => $cont_backup->file_name,
+                        'created_at' => date("Y-m-d H:i:s A"),
                     ];
                     return [
                         'success' => true,
@@ -360,9 +379,10 @@ class ContactsController extends ActiveController {
         $cont_backup = new ContactsBackup();
         $post = Yii::$app->request->getBodyParams();
         $back_up = ContactsBackup::find()->where(['user_id' => $post['user_id']])->all();
-         foreach ($back_up as $cont):
+        foreach ($back_up as $cont):
             $values[] = [
                 'file_name' => $cont->file_name,
+                'created_at' => date("Y-m-d", strtotime($cont->created_at)),
             ];
 
         endforeach;

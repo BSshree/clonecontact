@@ -50,7 +50,7 @@ class UsersController extends ActiveController {
                 foreach ($profile_img as $file) {
                     $file_name = str_replace(' ', '-', $file->name);
                     $randno = rand(11111, 99999);
-                    $path = Yii::$app->basePath . '/web/uploads/' . $randno . $file_name;
+                    $path = Yii::$app->basePath . '/web/uploads/images/' . $randno . $file_name;
                     $file->saveAs($path);
                     $user->profile_image = $randno . $file_name;
                 }
@@ -133,12 +133,12 @@ class UsersController extends ActiveController {
                 foreach ($profile_img as $file) {
                     $file_name = str_replace(' ', '-', $file->name);
                     $randno = rand(11111, 99999);
-                    $path = Yii::$app->basePath . '/web/uploads/' . $randno . $file_name;
+                    $path = Yii::$app->basePath . '/web/uploads/images/' . $randno . $file_name;
                     $file->saveAs($path);
                     $userinfo->profile_image = $randno . $file_name;
                 }
                 if ($oldimage != 'default.png') {
-                    unlink(Yii::$app->basePath . '/web/uploads/' . $oldimage);
+                    unlink(Yii::$app->basePath . '/web/uploads/images/' . $oldimage);
                 }
             }
             $userinfo->save();

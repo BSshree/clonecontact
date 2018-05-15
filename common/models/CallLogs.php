@@ -3,6 +3,8 @@
 namespace common\models;
 
 use Yii;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
+use yii\behaviors\TimestampBehavior;
 
 /**
  * This is the model class for table "call_logs".
@@ -33,6 +35,21 @@ class  CallLogs extends \yii\db\ActiveRecord
     public static function tableName()
     {
         return 'call_logs';
+    }
+    
+    public function behaviors() {
+        return [
+            'softDeleteBehavior' => [
+                'class' => SoftDeleteBehavior::className(),
+                'softDeleteAttributeValues' => [
+                    'isDeleted' => true
+                ],
+                'replaceRegularDelete' => true // mutate native `delete()` method
+            ],
+        ];
+        return [
+            TimestampBehavior::className(),
+        ];
     }
 
     /**
