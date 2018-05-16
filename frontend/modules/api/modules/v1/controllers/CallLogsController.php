@@ -175,7 +175,6 @@ class CallLogsController extends \yii\web\Controller {
         if (!empty($post)) {
             $logs->load(Yii::$app->request->getBodyParams(), '');
             $check = true;
-
             $contacts = Contacts::find()->where(['mobile_no' => $post['number']])->andWhere(['user_id' => $post['user_id']])->one();
             $contact_id = $contacts['contact_id'];
 
