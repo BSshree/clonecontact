@@ -85,7 +85,6 @@ class ContactsController extends ActiveController {
     }
 
     public function actionAddmulticontact() {
-
         $contacts = new Contacts();
         $post = Yii::$app->request->getBodyParams();
         $arr = $post['contact_arrayList'];
@@ -352,13 +351,13 @@ class ContactsController extends ActiveController {
                     $cont_backup = new ContactsBackup();
                     $cont_backup->user_id = $post['user_id'];
                     $cont_backup->file_name = $randno . $file_name;
-                    $cont_backup->created_at = date('Y-m-d H:i:s A');
+                    $cont_backup->created_at = date('Y-m-d H:i:s');
                     $cont_backup->save();
 
                     $values[] = [
                         'user_id' => $post['user_id'],
                         'file_name' => $cont_backup->file_name,
-                        'created_at' => date("Y-m-d H:i:s A"),
+                        'created_at' => $cont_backup->created_at,
                     ];
                     return [
                         'success' => true,
@@ -379,10 +378,11 @@ class ContactsController extends ActiveController {
         $cont_backup = new ContactsBackup();
         $post = Yii::$app->request->getBodyParams();
         $back_up = ContactsBackup::find()->where(['user_id' => $post['user_id']])->all();
+        date_default_timezone_set('Asia/Kolkata');
         foreach ($back_up as $cont):
             $values[] = [
                 'file_name' => $cont->file_name,
-                'created_at' => date("Y-m-d", strtotime($cont->created_at)),
+                'created_at' => $cont->created_at,
             ];
 
         endforeach;
