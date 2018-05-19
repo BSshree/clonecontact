@@ -124,7 +124,7 @@ class CallLogsController extends \yii\web\Controller {
                     }
 
                     if ($arr_time) {
-                        $del = CallLogs::find()->where(['in', 'time', $arr_time])->andWhere(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0 ])->all();
+                        $del = CallLogs::find()->where(['in', 'time', $arr_time])->andWhere(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->all();
                         foreach ($del as $rec) {
                             $rec->delete();
                         }
@@ -147,22 +147,45 @@ class CallLogsController extends \yii\web\Controller {
     public function actionLogslists() {
         $logs = new CallLogs();
         $post = Yii::$app->request->getBodyParams();
-        $logs = CallLogs::find()->orderBy(['call_id' => SORT_DESC])->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->all();
-        foreach ($logs as $log):
+        $arr_null = array();
+        $check = false;
+        $logs = CallLogs::find()->orderBy(['call_id' => SORT_ASC])->where(['user_id' => $post['user_id']])->andWhere(['contact_id' => NULL])->andWhere(['isDeleted' => 0])->all();
+
+        foreach ($logs as $log) {
+            $null_logs = Contacts::find()->where(['user_id' => $post['user_id']])->all();
+
+            foreach ($null_logs as $null) {
+                $arr_null[] = $null['mobile_no'];
+            }
+
+            if (in_array($log['number'], $arr_null)) {
+
+                $null_logs = Contacts::find()->where(['user_id' => $post['user_id']])->andWhere(['mobile_no' => $log['number']])->one();
+                $log->contact_id = $null_logs['contact_id'];
+                $log->name = $null_logs['name'];
+                $log->save();
+            } 
+        }
+
+        $logz = CallLogs::find()->orderBy(['call_id' => SORT_DESC])->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->all();
+
+        foreach ($logz as $log_values) {
+
             $values[] = [
-                'contact_id' => $log->contact_id,
-                'name' => $log->name,
-                'number' => $log->number,
-                'time' => $log->time,
-                'call_type' => $log->call_type,
-                'duration' => $log->duration,
+                'contact_id' => $log_values->contact_id,
+                'name' => $log_values->name,
+                'number' => $log_values->number,
+                'time' => $log_values->time,
+                'call_type' => $log_values->call_type,
+                'duration' => $log_values->duration,
             ];
-        endforeach;
-        return [
-            'success' => true,
-            'message' => 'Success',
-            'data' => $values
-        ];
+        }
+
+            return [
+                'success' => true,
+                'message' => 'Success',
+                'data' => $values
+            ];
     }
 
     public function actionSinglelog() {
@@ -312,20 +335,25 @@ class CallLogsController extends \yii\web\Controller {
         $query = "SELECT * FROM call_logs WHERE number = $num and isDeleted = 0";
         $result = CallLogs::findBySql($query)->all();
         foreach ($result as $log) {
+
+            $date = date("d-M-Y", strtotime($log['time']));
+            $time = date("H:i:s", strtotime($log['time']));
+
+
             $check = true;
             $values[] = [
-                'name' => $log['name'],
-                'number' => $log['number'],
-                'contact_id' => $log['contact_id'],
                 'duration' => $log['duration'],
                 'call_type' => $log['call_type'],
-                'time' => $log['time'],
+                'time' => $date . ' ' . $time,
             ];
         }
         if ($check) {
             return [
                 'success' => true,
                 'message' => 'Success',
+                'name' => $log['name'],
+                'number' => $log['number'],
+                'contact_id' => $log['contact_id'],
                 'data' => $values
             ];
         } else {
