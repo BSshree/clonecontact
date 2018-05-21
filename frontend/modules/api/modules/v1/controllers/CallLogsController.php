@@ -164,7 +164,7 @@ class CallLogsController extends \yii\web\Controller {
                 $log->contact_id = $null_logs['contact_id'];
                 $log->name = $null_logs['name'];
                 $log->save();
-            } 
+            }
         }
 
         $logz = CallLogs::find()->orderBy(['call_id' => SORT_DESC])->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->all();
@@ -181,11 +181,11 @@ class CallLogsController extends \yii\web\Controller {
             ];
         }
 
-            return [
-                'success' => true,
-                'message' => 'Success',
-                'data' => $values
-            ];
+        return [
+            'success' => true,
+            'message' => 'Success',
+            'data' => $values
+        ];
     }
 
     public function actionSinglelog() {
@@ -332,30 +332,43 @@ class CallLogsController extends \yii\web\Controller {
         $post = Yii::$app->request->getBodyParams();
         $num = $post['number'];
         $check = false;
-        $query = "SELECT * FROM call_logs WHERE number = $num and isDeleted = 0";
-        $result = CallLogs::findBySql($query)->all();
-        foreach ($result as $log) {
-
-            $date = date("d-M-Y", strtotime($log['time']));
-            $time = date("H:i:s", strtotime($log['time']));
-
-
-            $check = true;
-            $values[] = [
-                'duration' => $log['duration'],
-                'call_type' => $log['call_type'],
-                'time' => $date . ' ' . $time,
-            ];
+        $arr_number = array();
+        $call_logs = CallLogs::find()->where(['user_id' => $post['user_id']])->all();
+        foreach ($call_logs as $calls) {
+            $arr_number [] = $calls['number'];
         }
-        if ($check) {
-            return [
-                'success' => true,
-                'message' => 'Success',
-                'name' => $log['name'],
-                'number' => $log['number'],
-                'contact_id' => $log['contact_id'],
-                'data' => $values
-            ];
+        if (in_array($num, $arr_number)) {
+
+            $query = "SELECT * FROM call_logs WHERE number = $num and isDeleted = 0";
+            $result = CallLogs::findBySql($query)->all();
+            foreach ($result as $log) {
+
+                $date = date("d-M-Y", strtotime($log['time']));
+                $time = date("H:i:s", strtotime($log['time']));
+
+
+                $check = true;
+                $values[] = [
+                    'duration' => $log['duration'],
+                    'call_type' => $log['call_type'],
+                    'time' => $date . ' ' . $time,
+                ];
+            }
+            if ($check) {
+                return [
+                    'success' => true,
+                    'message' => 'Success',
+                    'name' => $log['name'],
+                    'number' => $log['number'],
+                    'contact_id' => $log['contact_id'],
+                    'data' => $values
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'message' => 'No contact exists',
+                ];
+            }
         } else {
             return [
                 'success' => false,
