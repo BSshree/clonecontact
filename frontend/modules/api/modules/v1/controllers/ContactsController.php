@@ -92,6 +92,7 @@ class ContactsController extends ActiveController {
         $arr_name = array();
         $arr_number = array();
         $values = array();
+        $saves = array();
         if (!empty($post)) {
             $user = Users::find()->where(['id' => $post['user_id']])->one();
             if (!empty($user['auth_key'])) {
@@ -109,13 +110,15 @@ class ContactsController extends ActiveController {
                                 'name' => $key1,
                                 'mobile_no' => $getValue,
                             ];
+                            $exists_count = sizeof($values);
                             break;
                         } else {
                             if (in_array($getValue, $arr_number)) {
                                 $values[] = [
                                     'name' => $key1,
-                                    ' mobile_no' => $getValue,
+                                    'mobile_no' => $getValue,
                                 ];
+                                $exists_count = sizeof($values);
                                 break;
                             } else {
                                 $check = true;
@@ -124,6 +127,11 @@ class ContactsController extends ActiveController {
                                 $contacts->name = $key1;
                                 $contacts->mobile_no = $getValue;
                                 $contacts->save();
+                                $saves[] = [
+                                    'name' => $key1,
+                                    'mobile_no' => $getValue,
+                                ];
+                                $saved_count = sizeof($saves);
                                 break;
                             }
                         }
@@ -133,7 +141,7 @@ class ContactsController extends ActiveController {
                     if (!empty($values)) {
                         return [
                             'success' => true,
-                            'message' => 'Success',
+                            'message' => $saved_count . ' Contacts saved ' . $exists_count . ' Contacts already exists',
                             'data' => $values
                         ];
                     } else {
@@ -145,7 +153,7 @@ class ContactsController extends ActiveController {
                 } else {
                     return [
                         'success' => false,
-                        'message' => 'Name / Number already exists',
+                        'message' => 'Name/Number already exists. Please save new contact',
                         'data' => $values
                     ];
                 }
@@ -155,7 +163,7 @@ class ContactsController extends ActiveController {
 
     public function actionListcontact() {
         $post = Yii::$app->request->getBodyParams();
-        $contacts = Contacts::find()->orderBy(['contact_id' => SORT_DESC])->where(['user_id' => $post['user_id']])->all();
+        $contacts = Contacts::find()->orderBy(['name' => SORT_ASC])->where(['user_id' => $post['user_id']])->all();
         foreach ($contacts as $cont):
             $values[] = [
                 'contact_id' => $cont->contact_id,

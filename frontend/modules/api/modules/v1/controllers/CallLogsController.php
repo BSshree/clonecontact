@@ -70,8 +70,8 @@ class CallLogsController extends \yii\web\Controller {
                         $logs = new CallLogs();
                         $logs->user_id = $post['user_id'];
                         $logs->contact_id = $cont_id[$contactz];
-                        $logs->name = $contact_logs['name'];
-                        $logs->number = $contact_logs['number'];
+                        $logs->name = base64_encode($contact_logs['name']);
+                        $logs->number = base64_encode($contact_logs['number']);
                         $logs->time = $date . ' ' . $time;
                         $logs->duration = $duration;
                         $logs->call_type = $contact_logs['call_type'];
@@ -80,8 +80,8 @@ class CallLogsController extends \yii\web\Controller {
                         $values[] = [
                             'user_id' => $post['user_id'],
                             'contact_id' => $cont_id[$contactz],
-                            'name' => $contact_logs['name'],
-                            'number' => $contact_logs['number'],
+                            'name' => base64_decode($logs->name),
+                            'number' => base64_decode($logs->number),
                             'duration' => $duration,
                             'time' => $contact_logs['time'],
                             'call_type' => $contact_logs['call_type'],
@@ -92,8 +92,8 @@ class CallLogsController extends \yii\web\Controller {
                     $logs = new CallLogs();
                     $logs->user_id = $post['user_id'];
                     $logs->contact_id = '';
-                    $logs->name = $contact_logs['name'];
-                    $logs->number = $contact_logs['number'];
+                    $logs->name = base64_encode($contact_logs['name']);
+                    $logs->number = base64_encode($contact_logs['number']);
                     $logs->time = $date . ' ' . $time;
                     $logs->duration = $duration;
                     $logs->call_type = $contact_logs['call_type'];
@@ -102,8 +102,8 @@ class CallLogsController extends \yii\web\Controller {
                     $values[] = [
                         'user_id' => $post['user_id'],
                         'contact_id' => '',
-                        'name' => $contact_logs['name'],
-                        'number' => $contact_logs['number'],
+                        'name' => base64_decode($logs->name),
+                        'number' => base64_decode($logs->number),
                         'duration' => $duration,
                         'time' => $contact_logs['time'],
                         'call_type' => $contact_logs['call_type'],
@@ -170,11 +170,10 @@ class CallLogsController extends \yii\web\Controller {
         $logz = CallLogs::find()->orderBy(['call_id' => SORT_DESC])->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->all();
 
         foreach ($logz as $log_values) {
-
             $values[] = [
                 'contact_id' => $log_values->contact_id,
-                'name' => $log_values->name,
-                'number' => $log_values->number,
+                'name' => base64_decode($log_values->name),
+                'number' => base64_decode($log_values->number),
                 'time' => $log_values->time,
                 'call_type' => $log_values->call_type,
                 'duration' => $log_values->duration,
@@ -213,8 +212,8 @@ class CallLogsController extends \yii\web\Controller {
             $logs = new CallLogs();
             $logs->user_id = $post['user_id'];
             $logs->contact_id = $contact_id;
-            $logs->name = $post['name'];
-            $logs->number = $post['number'];
+            $logs->name = base64_encode($post['name']);
+            $logs->number = base64_encode($post['number']);
             $logs->time = $date . ' ' . $time;
             $logs->duration = $duration;
             $logs->call_type = $post['call_type'];
@@ -223,9 +222,9 @@ class CallLogsController extends \yii\web\Controller {
 
             $values[] = [
                 'user_id' => $logs->user_id,
-                'contact_id' => $logs->contact_id,
-                'name' => $logs->name,
-                'number' => $logs->number,
+                'contact_id' => $logs->contact_id, 
+                'name' => base64_decode($logs->name),
+                'number' => base64_decode( $logs->number),
                 'duration' => $logs->duration,
                 'time' => $post['time'],
                 'call_type' => $logs->call_type,
@@ -265,7 +264,8 @@ class CallLogsController extends \yii\web\Controller {
     public function actionSearchlogs() {
         $post = Yii::$app->request->getBodyParams();
         $logs = CallLogs::find()->where(['user_id' => $post['user_id']])->all();
-        $na = $post['search_log'];
+        $na = base64_encode($post['search_log']);
+        //print_r($na); exit;
         $id = $post['user_id'];
         $check = false;
         $query = "SELECT * FROM call_logs WHERE user_id = $id AND (number LIKE '%$na%' OR name LIKE '%$na%' ) AND isDeleted = 0";
@@ -273,8 +273,8 @@ class CallLogsController extends \yii\web\Controller {
         foreach ($result as $log) {
             $check = true;
             $values[] = [
-                'name' => $log['name'],
-                'number' => $log['number'],
+                'name' => base64_decode($log['name']),
+                'number' => base64_decode($log['number']),
                 'contact_id' => $log['contact_id'],
                 'duration' => $log['duration'],
                 'call_type' => $log['call_type'],
@@ -306,8 +306,8 @@ class CallLogsController extends \yii\web\Controller {
         foreach ($result as $log) {
             $check = true;
             $values[] = [
-                'name' => $log['name'],
-                'number' => $log['number'],
+                'name' => base64_decode($log['name']),
+                'number' => base64_decode($log['number']),
                 'contact_id' => $log['contact_id'],
                 'duration' => $log['duration'],
                 'call_type' => $log['call_type'],
@@ -330,7 +330,8 @@ class CallLogsController extends \yii\web\Controller {
 
     public function actionLogdetails() {
         $post = Yii::$app->request->getBodyParams();
-        $num = $post['number'];
+        $num = base64_encode($post['number']);
+        $id = $post['user_id'];
         $check = false;
         $arr_number = array();
         $call_logs = CallLogs::find()->where(['user_id' => $post['user_id']])->all();
@@ -339,7 +340,7 @@ class CallLogsController extends \yii\web\Controller {
         }
         if (in_array($num, $arr_number)) {
 
-            $query = "SELECT * FROM call_logs WHERE number = $num and isDeleted = 0";
+            $query = "SELECT * FROM call_logs WHERE number = '$num' and isDeleted = 0 and user_id = '$id' ";
             $result = CallLogs::findBySql($query)->all();
             foreach ($result as $log) {
 
@@ -358,8 +359,8 @@ class CallLogsController extends \yii\web\Controller {
                 return [
                     'success' => true,
                     'message' => 'Success',
-                    'name' => $log['name'],
-                    'number' => $log['number'],
+                    'name' => base64_decode($log['name']),
+                    'number' => base64_decode($log['number']),
                     'contact_id' => $log['contact_id'],
                     'data' => $values
                 ];
@@ -379,12 +380,12 @@ class CallLogsController extends \yii\web\Controller {
 
     public function actionDeletelog() {
         $post = Yii::$app->request->getBodyParams();
-        $num = $post['number'];
+        $num = base64_encode($post['number']);
         $check = false;
-        $logs = CallLogs::find()->where(['number' => $post['number']])->one();
-        if ($post['number'] == $logs['number']) {
+        $logs = CallLogs::find()->where(['number' => $num ])->one();
+        if ($num == $logs['number']) {
             $check = false;
-            if ($post['number'] == $logs['number']) {
+            if ($num == $logs['number']) {
                 $logs->delete();
                 return [
                     'success' => true,
@@ -401,14 +402,14 @@ class CallLogsController extends \yii\web\Controller {
 
     public function actionRemovelog() {
         $post = Yii::$app->request->getBodyParams();
-        $num = $post['number'];
+        $num = base64_encode($post['number']);
         $flag = $post['flag'];
         $check = false;
         $logs = CallLogs::find()->where(['call_id' => $post['call_id']])->one();
         if ($flag == 0) {
-            if ($post['number'] == $logs['number']) {
+            if ($num == $logs['number']) {
                 $check = false;
-                if ($post['number'] == $logs['number']) {
+                if ($num == $logs['number']) {
                     $check = true;
                     $logs->delete();
                     return [
@@ -425,7 +426,7 @@ class CallLogsController extends \yii\web\Controller {
         } else {
             $logs_all = CallLogs::find()->where(['user_id' => $post['user_id']])->all();
             foreach ($logs_all as $all) {
-                if ($all['number'] == $post['number']) {
+                if ($all['number'] == $num) {
                     $check = true;
                     $all->delete();
                 }

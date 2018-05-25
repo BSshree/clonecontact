@@ -4,13 +4,12 @@
 
 use yii\helpers\Html;
 
-$this->title = 'About';
+$this->title = 'Email verification';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="site-about">
-    <h1><?= Html::encode($this->title) ?></h1>
 
-    <p>This is the About page. You may modify the following file to customize its content:</p>
+    <br><br>
+    <center><p><h3>Your account has been activated successfully !!. Please login using your app.</h3></p></center>
 
-    <code><?= __FILE__ ?></code>
 </div>

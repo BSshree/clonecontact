@@ -46,6 +46,7 @@ class UsersController extends ActiveController {
             $user->load(Yii::$app->request->getBodyParams(), '');
             $user->auth_key = $user->generateAuthKey();
             $user->password = $user->setPassword($password);
+            $user->status = 0;
             if ($profile_img = UploadedFile::getInstancesByName("profile_image")) {
                 foreach ($profile_img as $file) {
                     $file_name = str_replace(' ', '-', $file->name);
@@ -64,12 +65,29 @@ class UsersController extends ActiveController {
                     'username' => $user->username,
                     'email' => $user->email,
                     'profile_image' => $user->profile_image,
+                    'status' => $user->status
                 ];
-                return [
-                    'success' => true,
-                    'message' => 'Success',
-                    'data' => $values
-                ];
+                $auth_key = $user->auth_key;
+                $uid = $user->id;
+                $mail_sub = 'Clone Contact Email Verification';
+                $mail_body = "Hi " . $user->username . ",<br><br>";
+                $mail_body .= "Please click the below link to activate your account. <br><br>";
+                $mail_body .= " http://clonecontacts.arkinfotec.in/api/v1/users/emailverification?auth_key=$auth_key&uid=$uid";
+                $mail_body .= " <br><br>Thank you. <br><br> <b>Regards, <br> Clone Contact team</b><br>";
+                $emailSend = Yii::$app->mailer->compose()
+                        ->setFrom(['sumanasdev@gmail.com'])
+                        ->setTo($user->email)
+                        ->setSubject($mail_sub)
+                        ->setHtmlBody($mail_body)
+                        ->send();
+
+                if ($emailSend) {
+                    return [
+                        'success' => false,
+                        'message' => 'Please check your email to active your account',
+                        'data' => $values
+                    ];
+                }
             } else {
                 return [
                     'success' => false,
@@ -85,31 +103,54 @@ class UsersController extends ActiveController {
         }
     }
 
+    public function actionEmailverification() {
+        $user = Users::find()->where(['id' => $_GET['uid']])->one();
+        $db_key = $user['auth_key'];
+        if ($_GET['auth_key'] == $db_key) {
+
+            $user = new Users();
+            $user = Users::find()->where(['id' => $_GET['uid']])->one();
+            $user->status = 1;
+            $user->save(false);
+            return $this->redirect(['/site/about']);
+        }
+    }
+   
+
     public function actionLogin() {
         $post = Yii::$app->request->getBodyParams();
         $email = $post['email'];
         if (!empty($post)) {
+
             if (Users::find()->where(['email' => $email])->one()) {
-                $user = Users::find()->where(['email' => $email])->one();
-                $password = $user->password;
-                $valid_pass = Yii::$app->security->validatePassword($post['password'], $password);
-                if ($valid_pass) {
-                    $values[] = [
-                        'id' => $user->id,
-                        'auth_key' => $user->auth_key,
-                        'username' => $user->username,
-                        'email' => $user->email,
-                        'profile_image' => $user->profile_image,
-                    ];
-                    return [
-                        'success' => true,
-                        'message' => 'Login successful',
-                        'data' => $values
-                    ];
+                if (Users::find()->where(['status' => 1])->andWhere(['email' => $email])->one()) {
+
+                    $user = Users::find()->where(['email' => $email])->one();
+                    $password = $user->password;
+                    $valid_pass = Yii::$app->security->validatePassword($post['password'], $password);
+                    if ($valid_pass) {
+                        $values[] = [
+                            'id' => $user->id,
+                            'auth_key' => $user->auth_key,
+                            'username' => $user->username,
+                            'email' => $user->email,
+                            'profile_image' => $user->profile_image,
+                        ];
+                        return [
+                            'success' => true,
+                            'message' => 'Login successful',
+                            'data' => $values
+                        ];
+                    } else {
+                        return [
+                            'success' => false,
+                            'message' => 'Password is wrong',
+                        ];
+                    }
                 } else {
                     return [
                         'success' => false,
-                        'message' => 'Password is wrong',
+                        'message' => 'Sorry, Your account is inactive. Please check email to activate your account',
                     ];
                 }
             } else {
@@ -258,13 +299,14 @@ class UsersController extends ActiveController {
     public function actionContactus() {
 
         $values[] = [
-            'address_line_1' => 'No-01, Gandhiji St',
-            'address_line_2' => 'Rasi Towers',
-            'landmark' => 'Near Aparna Enclave',
-            'city' => 'Madurai',
-            'pincode' => '625010',
-            'contact' => '9966552200',
-            'email' => 'info@clonecontact.com ',
+            'Address_line_1' => 'No-01, Gandhiji St',
+            'Address_line_2' => 'Rasi Towers',
+            'URL' => 'http://www.sumanastech.com/',
+            'Landmark' => 'Near Aparna Enclave',
+            'City' => 'Madurai',
+            'Pincode' => '625010',
+            'Contact' => '9966552200',
+            'Email' => 'info@clonecontact.com ',
         ];
 
 
