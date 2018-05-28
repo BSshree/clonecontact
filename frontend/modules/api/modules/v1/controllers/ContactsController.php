@@ -60,6 +60,8 @@ class ContactsController extends ActiveController {
                         'message' => 'Name / Number already exists',
                     ];
                 } else {
+                    $contacts->created_at = time();
+                    $contacts->updated_at = time();
                     $contacts->save();
                     $values[] = [
                         'contact_id' => $contacts->contact_id,
@@ -126,6 +128,8 @@ class ContactsController extends ActiveController {
                                 $contacts->load(Yii::$app->request->getBodyParams(), '');
                                 $contacts->name = $key1;
                                 $contacts->mobile_no = $getValue;
+                                $contacts->created_at = time();
+                                $contacts->updated_at = time();
                                 $contacts->save();
                                 $saves[] = [
                                     'name' => $key1,
@@ -163,7 +167,7 @@ class ContactsController extends ActiveController {
 
     public function actionListcontact() {
         $post = Yii::$app->request->getBodyParams();
-        $contacts = Contacts::find()->orderBy(['name' => SORT_ASC])->where(['user_id' => $post['user_id']])->all();
+        $contacts = Contacts::find()->orderBy(['updated_at' => SORT_DESC])->where(['user_id' => $post['user_id']])->all();
         foreach ($contacts as $cont):
             $values[] = [
                 'contact_id' => $cont->contact_id,
@@ -215,6 +219,7 @@ class ContactsController extends ActiveController {
                     $contact_user->name = $post['name'];
                     $contact_user->mobile_no = $post['mobile_no'];
                     $contact_user->user_id = $post['user_id'];
+                    $contact_user->updated_at = time();
                     $contact_user->save();
                     return [
                         'success' => true,
@@ -225,6 +230,7 @@ class ContactsController extends ActiveController {
                         $contact_user->name = $post['name'];
                         $contact_user->mobile_no = $post['mobile_no'];
                         $contact_user->user_id = $post['user_id'];
+                        $contact_user->updated_at = time();
                         $contact_user->save();
                         return [
                             'success' => true,
@@ -234,6 +240,7 @@ class ContactsController extends ActiveController {
                         $contact_user->name = $post['name'];
                         $contact_user->mobile_no = $post['mobile_no'];
                         $contact_user->user_id = $post['user_id'];
+                        $contact_user->updated_at = time();
                         $contact_user->save();
                         return [
                             'success' => true,
@@ -385,20 +392,29 @@ class ContactsController extends ActiveController {
     public function actionFilelist() {
         $cont_backup = new ContactsBackup();
         $post = Yii::$app->request->getBodyParams();
-        $back_up = ContactsBackup::find()->where(['user_id' => $post['user_id']])->all();
+        $back_up = ContactsBackup::find()->orderBy(['created_at' => SORT_DESC])->where(['user_id' => $post['user_id']])->all();
         date_default_timezone_set('Asia/Kolkata');
+        $check = false;
         foreach ($back_up as $cont):
+            $check = true;
             $values[] = [
                 'file_name' => $cont->file_name,
                 'created_at' => $cont->created_at,
             ];
 
         endforeach;
-        return [
-            'success' => true,
-            'message' => 'Success',
-            'data' => $values
-        ];
+        if ($check) {
+            return [
+                'success' => true,
+                'message' => 'Success',
+                'data' => $values
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => 'No file exists',
+            ];
+        }
     }
 
 }

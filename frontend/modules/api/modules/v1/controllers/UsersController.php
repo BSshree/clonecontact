@@ -299,14 +299,14 @@ class UsersController extends ActiveController {
     public function actionContactus() {
 
         $values[] = [
-            'Address_line_1' => 'No-01, Gandhiji St',
-            'Address_line_2' => 'Rasi Towers',
-            'URL' => 'http://www.sumanastech.com/',
-            'Landmark' => 'Near Aparna Enclave',
-            'City' => 'Madurai',
-            'Pincode' => '625010',
-            'Contact' => '9966552200',
-            'Email' => 'info@clonecontact.com ',
+            'address_line_1' => 'No-01, Gandhiji St',
+            'address_line_2' => 'Rasi Towers',
+            'url' => 'http://www.sumanastech.com/',
+            'landmark' => 'Near Aparna Enclave',
+            'city' => 'Madurai',
+            'pincode' => '625010',
+            'contact' => '9966552200',
+            'email' => 'info@clonecontact.com ',
         ];
 
 
