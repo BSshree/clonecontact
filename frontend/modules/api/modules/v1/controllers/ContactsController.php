@@ -257,7 +257,7 @@ class ContactsController extends ActiveController {
         } else {
             return [
                 'success' => false,
-                'message' => 'Already existing contacts',
+                'message' => 'Contacts already exists',
                 'data' => $values
             ];
         }
