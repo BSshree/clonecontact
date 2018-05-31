@@ -168,15 +168,21 @@ class CallLogsController extends \yii\web\Controller {
         }
 
         $logz = CallLogs::find()->orderBy(['call_id' => SORT_DESC])->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->all();
-
-        foreach ($logz as $log_values) {
-            $values[] = [
-                'contact_id' => $log_values->contact_id,
-                'name' => base64_decode($log_values->name),
-                'number' => base64_decode($log_values->number),
-                'time' => $log_values->time,
-                'call_type' => $log_values->call_type,
-                'duration' => $log_values->duration,
+        if ($logz) {
+            foreach ($logz as $log_values) {
+                $values[] = [
+                    'contact_id' => $log_values->contact_id,
+                    'name' => base64_decode($log_values->name),
+                    'number' => base64_decode($log_values->number),
+                    'time' => $log_values->time,
+                    'call_type' => $log_values->call_type,
+                    'duration' => $log_values->duration,
+                ];
+            }
+        } else {
+            return [
+                'success' => false,
+                'message' => 'No logs found.',
             ];
         }
 
@@ -222,9 +228,9 @@ class CallLogsController extends \yii\web\Controller {
 
             $values[] = [
                 'user_id' => $logs->user_id,
-                'contact_id' => $logs->contact_id, 
+                'contact_id' => $logs->contact_id,
                 'name' => base64_decode($logs->name),
-                'number' => base64_decode( $logs->number),
+                'number' => base64_decode($logs->number),
                 'duration' => $logs->duration,
                 'time' => $post['time'],
                 'call_type' => $logs->call_type,
@@ -382,7 +388,7 @@ class CallLogsController extends \yii\web\Controller {
         $post = Yii::$app->request->getBodyParams();
         $num = base64_encode($post['number']);
         $check = false;
-        $logs = CallLogs::find()->where(['number' => $num ])->one();
+        $logs = CallLogs::find()->where(['number' => $num])->one();
         if ($num == $logs['number']) {
             $check = false;
             if ($num == $logs['number']) {

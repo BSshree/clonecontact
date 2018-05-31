@@ -20,6 +20,7 @@ class Contacts extends \yii\db\ActiveRecord
      * @inheritdoc
      */
     public $search_by;
+    public $import_phone;
     
     public static function tableName()
     {

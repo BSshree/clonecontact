@@ -199,69 +199,67 @@ class ContactsController extends ActiveController {
         ];
     }
 
-    public function actionEditcontact() {
+    public function actionImportphonecontacts() {
         $contacts = new Contacts();
         $post = Yii::$app->request->getBodyParams();
-        if (!empty($post)) {
-            $contacts->load(Yii::$app->request->getBodyParams(), '');
-            $user = Users::find()->where(['id' => $post['user_id']])->one();
-            $contact_user = Contacts::find()->where(['contact_id' => $post['contact_id']])->one();
-            $contacts_all = Contacts::find()->where(['user_id' => $post['user_id']])->all();
-            if ($post['user_id'] == $contact_user['user_id']) {
-                $check = false;
-                $mobile_no = $contact_user['mobile_no'];
-                $name = $contact_user['name'];
-                foreach ($contacts_all as $contactz) {
-                    $arr_name [] = $contactz['name'];
-                    $arr_number[] = $contactz['mobile_no'];
-                }
-                if (($mobile_no == $post['mobile_no']) && ($name == $post['name'])) {
-                    $contact_user->name = $post['name'];
-                    $contact_user->mobile_no = $post['mobile_no'];
-                    $contact_user->user_id = $post['user_id'];
-                    $contact_user->updated_at = time();
-                    $contact_user->save();
-                    return [
-                        'success' => true,
-                        'message' => 'Success',
+        $arr_name = array();
+        $arr_number = array();
+        $check = false;
+        if ($profile_img = UploadedFile::getInstancesByName("import_phone")) {
+            foreach ($profile_img as $file) {
+                $file_name = str_replace(' ', '-', $file->name);
+                $randno = rand(11111, 99999);
+                $path = Yii::$app->basePath . '/web/uploads/files/' . $randno . $file_name;
+                $file->saveAs($path);
+                $flz = $randno . $file_name;
+                //$user->profile_image = $randno . $file_name;
+            }
+        }
+
+        $contacts_all = Contacts::find()->where(['user_id' => $post['user_id']])->all();
+
+        foreach ($contacts_all as $key2) {
+            $arr_name [] = $key2['name'];
+            $arr_number[] = $key2['mobile_no'];
+        }
+
+        $path = Yii::$app->basePath . '/web/uploads/files/' . $randno . $file_name;
+        $fileHandler = fopen($path, 'r');
+        if ($fileHandler) {
+            while ($line = fgetcsv($fileHandler, 1000)) {
+                $contacts = new Contacts;
+                $name = $line[0];
+                $number = $line[1];
+
+                if ((in_array($number, $arr_number)) || (in_array($name, $arr_name))) {
+                    $values[] = [
+                        'name' => $name,
+                        'mobile_no' => $number,
                     ];
                 } else {
-                    if ($mobile_no != $post['mobile_no'] && (!in_array($post['mobile_no'], $arr_number))) {
-                        $contact_user->name = $post['name'];
-                        $contact_user->mobile_no = $post['mobile_no'];
-                        $contact_user->user_id = $post['user_id'];
-                        $contact_user->updated_at = time();
-                        $contact_user->save();
-                        return [
-                            'success' => true,
-                            'message' => 'Success',
-                        ];
-                    } elseif ($name != $post['name'] && (!in_array($post['name'], $arr_name))) {
-                        $contact_user->name = $post['name'];
-                        $contact_user->mobile_no = $post['mobile_no'];
-                        $contact_user->user_id = $post['user_id'];
-                        $contact_user->updated_at = time();
-                        $contact_user->save();
-                        return [
-                            'success' => true,
-                            'message' => 'Success',
-                        ];
-                    }
-                }
-                if ($mobile_no != $post['mobile_no'] && (in_array($post['mobile_no'], $arr_number))) {
-
-                    return [
-                        'success' => false,
-                        'message' => 'Number already exists',
-                    ];
-                } elseif ($name != $post['name'] && (in_array($post['name'], $arr_name))) {
-
-                    return [
-                        'success' => false,
-                        'message' => 'Name already exists',
-                    ];
+                    $check = true;
+                    $contacts = new Contacts();
+                    $contacts->name = $name;
+                    $contacts->mobile_no = $number;
+                    $contacts->user_id = $post['user_id'];
+                    $contacts->created_at = time();
+                    $contacts->updated_at = time();
+                    $contacts->save();
                 }
             }
+        }
+        if ($check) {
+            return [
+                'success' => true,
+                'message' => 'Success',
+                'data' => $values
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => 'Already existing contacts',
+                'data' => $values
+            ];
         }
     }
 
