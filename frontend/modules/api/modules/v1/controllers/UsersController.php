@@ -292,7 +292,7 @@ class UsersController extends ActiveController {
             . "<p align='justify'>This has become one of the most handy APP's in android world. Majority usage of this APP has reached its safest heights as well. It keeps you far away from hacking and hanging."
             . " </p>"
             . "<p align='justify'>Its been trusted because of its security where third parties cannot easily been taken off ones information."
-            . " If you think it makes you sound super smart then go for it.</p>",
+            . " If you think it sounds super smart then go for it.</p>",
         ];
     }
 
