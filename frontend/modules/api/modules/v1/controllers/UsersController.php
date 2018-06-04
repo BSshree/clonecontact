@@ -69,7 +69,7 @@ class UsersController extends ActiveController {
                 ];
                 $auth_key = $user->auth_key;
                 $uid = $user->id;
-                $mail_sub = 'Clone Contact Email Verification';
+                $mail_sub = 'Clone Contact Account Activation';
                 $mail_body = "Hi " . $user->username . ",<br><br>";
                 $mail_body .= "Please click the below link to activate your account. <br><br>";
                 $mail_body .= " http://clonecontacts.arkinfotec.in/api/v1/users/emailverification?auth_key=$auth_key&uid=$uid";
@@ -112,7 +112,7 @@ class UsersController extends ActiveController {
             $user = Users::find()->where(['id' => $_GET['uid']])->one();
             $user->status = 1;
             $user->save(false);
-            return $this->redirect(['/site/about']);
+            return $this->redirect(['/site/emailverification']);
         }
     }
    

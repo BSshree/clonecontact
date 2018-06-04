@@ -26,10 +26,10 @@ class SiteController extends Controller
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout', 'signup'],
+                'only' => ['logout', 'signup','emailverification'],
                 'rules' => [
                     [
-                        'actions' => ['signup'],
+                        'actions' => ['signup','emailverification'],
                         'allow' => true,
                         'roles' => ['?'],
                     ],
@@ -141,6 +141,11 @@ class SiteController extends Controller
     public function actionAbout()
     {
         return $this->render('about');
+    }
+    
+    public function actionEmailverification()
+    {
+        return $this->render('emailverification');
     }
 
     /**
