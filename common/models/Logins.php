@@ -18,7 +18,7 @@ use yii\db\ActiveRecord;
  * @property string $password_reset_token
  * @property string $email
  * @property integer $status
- * @property integer $created_at
+ * @property integer $created_at    
  * @property integer $updated_at
  * @property integer $created_by
  * @property integer $updated_by
