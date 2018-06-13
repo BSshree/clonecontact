@@ -415,4 +415,25 @@ class ContactsController extends ActiveController {
         }
     }
 
+    public function actionContactscount() {
+        $contacts = new Contacts();
+        $post = Yii::$app->request->getBodyParams();
+        $contacts = Contacts::find()->where(['user_id' => $post['user_id']])->all();
+        $user_id = $post['user_id'];
+        $count = Contacts::find()->where(['user_id' => $user_id])->count();
+        if($count == !null){
+             return [
+                'success' => true,
+                'message' => 'Success',
+                'data' => $count
+            ];
+        }else{
+            return [
+                'success' => false,
+                'message' => 'No contacts exists',
+            ];
+        }
+        
+    }
+
 }
