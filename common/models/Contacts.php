@@ -1,7 +1,7 @@
 <?php
 
 namespace common\models;
-
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
 use Yii;
 
 /**
@@ -27,6 +27,21 @@ class Contacts extends \yii\db\ActiveRecord
         return 'contacts';
     }
 
+    public function behaviors() {
+        return [
+            'softDeleteBehavior' => [
+                'class' => SoftDeleteBehavior::className(),
+                'softDeleteAttributeValues' => [
+                    'isDeleted' => true
+                ],
+                'replaceRegularDelete' => true // mutate native `delete()` method
+            ],
+        ];
+        return [
+            TimestampBehavior::className(),
+        ];
+    }
+    
     /**
      * @inheritdoc
      */

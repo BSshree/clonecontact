@@ -14,6 +14,7 @@ use yii\filters\ContentNegotiator;
 use yii\rest\ActiveController;
 use yii\web\Response;
 use yii\web\UploadedFile;
+use yii2tech\ar\softdelete\SoftDeleteBehavior;
 
 class ContactsController extends ActiveController {
 
@@ -69,7 +70,7 @@ class ContactsController extends ActiveController {
                     return [
                         'success' => true,
                         'message' => 'Success',
-                        'data' => $values
+                        'data' => $values,
                     ];
                 }
             } else {
@@ -145,7 +146,7 @@ class ContactsController extends ActiveController {
                     if (!empty($values)) {
                         return [
                             'success' => true,
-                            'message' => $saved_count . ' Contacts saved ' . $exists_count . ' Contacts already exists',
+                            'message' => $saved_count . ' Contact(s) saved ' . $exists_count . ' Contact(s) already exists',
                             'data' => $values
                         ];
                     } else {
@@ -167,7 +168,7 @@ class ContactsController extends ActiveController {
 
     public function actionListcontact() {
         $post = Yii::$app->request->getBodyParams();
-        $contacts = Contacts::find()->orderBy(['updated_at' => SORT_DESC])->where(['user_id' => $post['user_id']])->all();
+        $contacts = Contacts::find()->orderBy(['updated_at' => SORT_DESC])->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->all();
         foreach ($contacts as $cont):
             $values[] = [
                 'contact_id' => $cont->contact_id,
@@ -175,10 +176,21 @@ class ContactsController extends ActiveController {
                 'mobile_no' => $cont->mobile_no,
             ];
         endforeach;
+        $count = Contacts::find()->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->count();
+
+
+        if ($contacts != NULL) {
+            return [
+                'success' => true,
+                'message' => 'Success',
+                'count' => $count,
+                'data' => $values
+            ];
+        }
         return [
             'success' => true,
             'message' => 'Success',
-            'data' => $values
+            'count' => $count,
         ];
     }
 
@@ -421,19 +433,41 @@ class ContactsController extends ActiveController {
         $contacts = Contacts::find()->where(['user_id' => $post['user_id']])->all();
         $user_id = $post['user_id'];
         $count = Contacts::find()->where(['user_id' => $user_id])->count();
-        if($count == !null){
-             return [
+        if ($count == !null) {
+            return [
                 'success' => true,
                 'message' => 'Success',
                 'data' => $count
             ];
-        }else{
+        } else {
             return [
                 'success' => false,
                 'message' => 'No contacts exists',
             ];
         }
-        
+    }
+
+    public function actionClearcontacts() {
+        $post = Yii::$app->request->getBodyParams();
+        $contacts = Contacts::find()->where(['user_id' => $post['user_id']])->one();
+        if ($post['user_id'] == $contacts['user_id']) {
+            //$contacts_all = Contacts::find()->where(['contact_id' => $getValue])->all();
+            $contacts_all = Contacts::find()->where(['user_id' => $post['user_id']])->all();
+
+            foreach ($contacts_all as $del) {
+                $check = true;
+                $del->delete();
+            }
+            return [
+                'success' => true,
+                'message' => 'Success',
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => 'No Contact Exists',
+            ];
+        }
     }
 
 }
