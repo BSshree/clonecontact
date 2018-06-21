@@ -101,7 +101,7 @@ class ContactsController extends ActiveController {
             if (!empty($user['auth_key'])) {
 
                 foreach ($arr as $key => $contact_arrayList) {
-                    $contacts_all = Contacts::find()->where(['user_id' => $post['user_id']])->all();
+                    $contacts_all = Contacts::find()->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->all();
 
                     foreach ($contacts_all as $key2) {
                         $arr_name [] = $key2['name'];
@@ -177,26 +177,36 @@ class ContactsController extends ActiveController {
             ];
         endforeach;
         $count = Contacts::find()->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->count();
-
+        $numlength = strlen((string) $count);
 
         if ($contacts != NULL) {
+            
+            if ($numlength > 1) {
+                return [
+                    'success' => true,
+                    'message' => 'Success',
+                    'count' => $count,
+                    'data' => $values
+                ];
+            } else {
+                return [
+                    'success' => true,
+                    'message' => 'Success',
+                    'count' => '0' . $count,
+                    'data' => $values
+                ];
+            }
+        } else {
             return [
-                'success' => true,
-                'message' => 'Success',
-                'count' => $count,
-                'data' => $values
+                'success' => false,
+                'message' => 'No contacts exists',
             ];
         }
-        return [
-            'success' => true,
-            'message' => 'Success',
-            'count' => $count,
-        ];
     }
 
     public function actionSortbyname() {
         $post = Yii::$app->request->getBodyParams();
-        $contacts = Contacts::find()->orderBy(['name' => SORT_ASC])->where(['user_id' => $post['user_id']])->all();
+        $contacts = Contacts::find()->orderBy(['name' => SORT_ASC])->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->all();
         foreach ($contacts as $cont):
             $values[] = [
                 'contact_id' => $cont->contact_id,
@@ -295,13 +305,13 @@ class ContactsController extends ActiveController {
     public function actionDeletemulticontact() {
         $post = Yii::$app->request->getBodyParams();
         $arr = $post['del_contact'];
-        $contacts = Contacts::find()->where(['user_id' => $post['user_id']])->one();
+        $contacts = Contacts::find()->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->one();
         if ($post['user_id'] == $contacts['user_id']) {
             $check = false;
             foreach ($arr as $key => $contact_array) {
 
                 foreach ($contact_array as $key1 => $getValue) {
-                    $contacts_all = Contacts::find()->where(['contact_id' => $getValue])->all();
+                    $contacts_all = Contacts::find()->where(['mobile_no' => $getValue])->andWhere(['isDeleted' => 0])->all();
 
                     foreach ($contacts_all as $del) {
                         $check = true;
