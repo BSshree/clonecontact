@@ -166,6 +166,78 @@ class ContactsController extends ActiveController {
         }
     }
 
+    public function actionEditcontact() {
+        $contacts = new Contacts();
+        $post = Yii::$app->request->getBodyParams();
+        //$arr = $post['name'];
+        $check = false;
+        $arr_name = array();
+        $arr_number = array();
+        $values = array();
+        $saves = array();
+        if (!empty($post)) {
+            $user = Users::find()->where(['id' => $post['user_id']])->one();
+            if (!empty($user['auth_key'])) {
+
+                $contacts_all = Contacts::find()->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->andWhere(['<>', 'contact_id', $post['contact_id']])->all();
+                $contact_one = Contacts::find()->where(['contact_id' => $post['contact_id']])->andWhere(['isDeleted' => 0])->one();
+
+                foreach ($contacts_all as $key2) {
+                    $arr_name [] = $key2['name'];
+                    $arr_number[] = $key2['mobile_no'];
+                }
+
+                if ((($post['name'] == $contact_one['name'])) && ($post['mobile_no'] == $contact_one['mobile_no'])) {
+
+                    $contacts = new Contacts();
+                    $contacts = Contacts::find()->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->andWhere(['contact_id' => $post['contact_id']])->one();
+                    $contacts->load(Yii::$app->request->getBodyParams(), '');
+                    $contacts->name = $post['name'];
+                    $contacts->mobile_no = $post['mobile_no'];
+                    $contacts->created_at = time();
+                    $contacts->updated_at = time();
+                    $contacts->save();
+
+                    return [
+                        'success' => true,
+                        'message' => 'Success',
+                    ];
+                }
+
+                if (in_array($post['name'], $arr_name)) {
+                    return [
+                        'success' => false,
+                        'message' => 'Name already exists.',
+                    ];
+                } else if (in_array($post['mobile_no'], $arr_number)) {
+                    return [
+                        'success' => false,
+                        'message' => 'Number already exists.',
+                    ];
+                } else {
+
+                    $check = true;
+                    $contacts = new Contacts();
+                    $contacts = Contacts::find()->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->one();
+                    $contacts->load(Yii::$app->request->getBodyParams(), '');
+                    $contacts->name = $post['name'];
+                    $contacts->mobile_no = $post['mobile_no'];
+                    $contacts->created_at = time();
+                    $contacts->updated_at = time();
+                    $contacts->save();
+                    $saves[] = [
+                        'name' => $contacts->name,
+                        'mobile_no' => $contacts->mobile_no,
+                    ];
+                    return [
+                        'success' => true,
+                        'message' => 'Success',
+                    ];
+                }
+            }
+        }
+    }
+
     public function actionListcontact() {
         $post = Yii::$app->request->getBodyParams();
         $contacts = Contacts::find()->orderBy(['updated_at' => SORT_DESC])->where(['user_id' => $post['user_id']])->andWhere(['isDeleted' => 0])->all();
@@ -180,7 +252,7 @@ class ContactsController extends ActiveController {
         $numlength = strlen((string) $count);
 
         if ($contacts != NULL) {
-            
+
             if ($numlength > 1) {
                 return [
                     'success' => true,
