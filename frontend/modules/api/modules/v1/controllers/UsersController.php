@@ -299,7 +299,7 @@ class UsersController extends ActiveController {
     public function actionContactus() {
 
         $values[] = [
-            'address' => 'No-01, Gandhiji St, Rasi Towers, Near Aparna Enclave',
+            'address' => '244/3, Vivek Street, Duraisamy Nagar, Near Corporation Park, Bye-Pass Road',
 //            'address_line_2' => 'Rasi Towers',
             'url' => 'http://www.sumanastech.com/',
 //            'landmark' => 'Near Aparna Enclave',
